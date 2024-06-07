@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form action="{% url 'calculate_home_heat_emissions' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End date</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="room-size">Room Size(square meter)</label>
+            <input type="text" class="form-control" id="room-size" name="room_size" required>
+        </div>
+        <div class="form-group">
+            <label for="fuel">Type of Fuel:</label>
+            <select class="form-control" id="fuel" name='fuel'>
+                <option selected>Choose...</option>
+                <option value="Coal">Coal</option>
+                <option value="Geothermal">Geothermal</option>
+                <option value="Hydroelectricity">Hydroelectricity</option>
+                <option value="Nuclear">Nuclear</option>
+                <option value="Petroleum">Petroleum</option>
+                <option value="Solar">Solar</option>
+                <option value="Diesel Oil">Diesel Oil</option>
+                <option value="LPG">LPG</option>
+                <option value="Coal">Coal</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fuel-volume">Fuel Volume(Litres)</label>
+            <input type="text" class="form-control" id="fuel-volume" name="fuel_volume" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

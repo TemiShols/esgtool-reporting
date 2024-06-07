@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+    <h1>Results List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Result Updated</th>
+                <th>Date Created</th>
+                <th>Fuel</th>
+                <th>Electricity</th>
+                <th>Waste</th>
+                <th>CHP</th>
+                <th>Home Heating</th>
+                <th>Transport</th>
+                <th>Refrigerant</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for result in results %}
+            <tr>
+                <td>{{ result.user.username }}</td>
+                <td>{{ result.result_updated }}</td>
+                <td>{{ result.date_created }}</td>
+                <td>
+                    {% for fuel in result.fuel.all %}
+                        {{ fuel.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for electricity in result.electricity.all %}
+                        {{ electricity.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for waste in result.waste.all %}
+                        {{ waste.source_of_waste }} to {{ waste.destination_of_waste }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for chp in result.chp.all %}
+                        {{ chp.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for home_heating in result.home_heating.all %}
+                        {{ home_heating.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for transport in result.transport.all %}
+                        {{ transport.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for refrigerant in result.refrigerant.all %}
+                        {{ refrigerant.name }}<br>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

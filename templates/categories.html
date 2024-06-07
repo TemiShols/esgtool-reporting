@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="shortcut icon" href="https://fusionscl.com/wp-content/uploads/2020/04/cropped-Crop-FCSL-51-2.png">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .input-group select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .login-link {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #333;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <img src="https://fusionscl.com/wp-content/uploads/2020/04/cropped-Crop-FCSL-51-2.png" alt="Logo" class="logo">
+        <h2>Reason for Browsing the ESG App</h2>
+        <form action="{% url 'category' %}" method="post">
+            {% csrf_token %}
+            <div class="input-group">
+                <select name="reason" required>
+                    <option value="">Select Reason</option>
+                    <option value="Know my carbon footprints">Know my carbon footprints</option>
+                    <option value="Generate a sustainability report">Generate a sustainability report</option>
+                    <option value="Go through the application">Go through the application</option>
+                    <option value="Request a Demo">Request a Demo</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <select name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="Energy (Renewable & Non-renewable)">Energy (Renewable & Non-renewable)</option>
+                    <option value="Manufacturing">Manufacturing</option>
+                    <option value="Transportation">Transportation</option>
+                    <option value="Agriculture & Food Production">Agriculture & Food Production</option>
+                    <option value="Construction & Real Estate">Construction & Real Estate</option>
+                    <option value="Financial Services">Financial Services</option>
+                    <option value="Technology & Telecommunications">Technology & Telecommunications</option>
+                    <option value="Healthcare & Pharmaceuticals">Healthcare & Pharmaceuticals</option>
+                    <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                    <option value="Retail & Consumer Goods">Retail & Consumer Goods</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Government & Public Sector">Government & Public Sector</option>
+                    <option value="Education">Education</option>
+                    <option value="Entertainment & Media">Entertainment & Media</option>
+                    <option value="Non-profit & NGO">Non-profit & NGO</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">Submit</button>
+        </form>
+    </div>
+</body>
+
+</html>

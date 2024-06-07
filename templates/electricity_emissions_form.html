@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form action="{% url 'calculate_electricity_emissions' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Type of Fuel:</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">Type of Fuel:</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="Af_kw">Electricity consumption in kilowatt-hours (kWh)</label>
+            <input type="text" class="form-control" id="Af_kw" name="Af_kw" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

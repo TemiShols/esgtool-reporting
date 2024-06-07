@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form action="{% url 'calculate_electricity_emissions' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="fuel">Type of Transport:</label>
+            <select class="form-control" id="fuel" name='type'>
+                <option selected>Choose...</option>
+                <option value="Road">Road</option>
+                <option value="Rail">Rail</option>
+                <option value="Water">Water</option>
+                <option value="Air">Air</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="milg">Mileage</label>
+            <input type="number" class="form-control" id="milg" name="mileage" required>
+        </div>
+        <div class="form-group">
+            <label for="src">Source</label>
+            <input type="text" class="form-control" id="src" name="source">
+        </div>
+        <div class="form-group">
+            <label for="dest">Destination</label>
+            <input type="text" class="form-control" id="dest" name="destination">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}
+
+mileage = models.CharField(max_length=7, null=True, blank=True)
+    source = models.CharField(max_length=255, null=True, blank=True)
+    destination = models.CharField(max_length=255, null=True, blank=True)

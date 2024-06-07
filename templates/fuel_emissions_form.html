@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form action="{% url 'calculate_fuel_emissions' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="fuel">Type of Fuel:</label>
+            <select class="form-control" id="fuel" name='fuel'>
+                <option selected>Choose...</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel Oil">Diesel Oil</option>
+                <option value="LPG">LPG</option>
+                <option value="Coal">Coal</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="coal">Type of Fuel:</label>
+            <select class="form-control" id="coal" name='coal_type'>
+                <option selected>Choose...</option>
+                <option value="Anthracite">Anthracite</option>
+                <option value="Bituminous">Bituminous</option>
+                <option value="Lignite">Lignite</option>
+                <option value="None">None(Don't use Coal)</option>
+                <option value="Sub-bituminous">Sub-bituminous</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Af_v">Volume of fuel consumed(litres)</label>
+            <input type="text" class="form-control" id="Af_v" name="Af_v" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

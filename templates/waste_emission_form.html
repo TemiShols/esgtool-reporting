@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form action="{% url 'calculate_waste_emissions' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">End date</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="source-Address">Source Address of waste</label>
+            <input type="datetime-local" class="form-control" id="source-Address" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="destination-address">Destination Address of Waste Disposal Site</label>
+            <input type="datetime-local" class="form-control" id="destination-address" name="end_date" required>
+        </div>
+
+        <div class="form-group">
+            <label for="waste_treatment">Treatment type:</label>
+            <select class="form-control" id="waste_treatment" name='waste_treatment'>
+                <option selected>Choose...</option>
+                <option value="Anaerobic Digestion">Anaerobic Digestion</option>
+                <option value="Composting">Composting</option>
+                <option value="Incineration">Incineration</option>
+                <option value="Landfill">Landfill</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="vehicle-type">Vehicle type:</label>
+            <select class="form-control" id="vehicle-type" name='vehicle_type'>
+                <option selected>Choose...</option>
+                <option value="Truck">Truck</option>
+                <option value="Van">Van</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="waste_mass">Quantity of Waste(kg/MT)</label>
+            <input type="text" class="form-control" id="waste_mass" name="waste_mass" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+{% endblock %}

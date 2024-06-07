@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="result-container">
+    <h2>Carbon Footprint Results</h2>
+    <div class="result-group">
+        <label for="resultFuel">Heating:</label>
+        <span id="resultFuel"></span>
+    </div>
+    <div class="result-group">
+        <label for="resultAf_v">Your carbon emissions based on your heating input is:</label>
+        <span id="resultAf_v">{{ emission.calculate_home_heating_emissions }}KgCO2</span>
+    </div>
+    <div class="result-group">
+        {% if emission.total_carbon_emissions_monthly < 1000 %}
+        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+            <span>Low Emissions</span><i class="bi bi-emoji-smile-fill"></i>
+        </div>
+        {% elif emission.total_carbon_emissions_monthly < 3000 %}
+        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+            <span>Moderate Emissions</span><i class="bi bi-emoji-neutral-fill"></i>
+        </div>
+        {% elif emission.total_carbon_emissions_monthly < 6000 %}
+        <div class="alert alert-success d-flex justify-content-between align-items-center" role="alert">
+            <span>High Emissions</span><i class="bi bi-emoji-dizzy-fill"></i>
+        </div>
+        {% else %}
+        <div class="alert alert-danger" role="alert">
+            Very High Emissions
+        </div>
+        {% endif %}
+    </div>
+    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Back to Dashboard</button>
+    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Check </button>
+</div>
+
+{% endblock %}
