@@ -40,3 +40,20 @@ def get_geocode(address):
 
     location = data['results'][0]['geometry']
     return location['lat'], location['lng']
+
+
+def get_density_for_fuel(self):
+    # Define a dictionary to store the density for each type of fuel
+    fuel_density = {
+        'Diesel Oil': 0.85,  # Example density for Diesel Oil (in kg/L)0.82 - 0.86
+        'Gas': 0.70,  # Example density for Gas (in kg/L)0.50-0.58
+        'Petrol': 0.75,  # Example density for Petrol (in kg/L)0.72-0.77
+        # Add densities for other types of fuel as needed
+    }
+
+    fuel_value = str(self.fuel)  # Convert the CharField to a string
+    return fuel_density.get(fuel_value, 0.0)
+
+
+def kg_to_mtco2(kg_co2):
+    return kg_co2 / 1000

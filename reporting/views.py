@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect
+from django.core.exceptions import ValidationError
 from .forms import EmissionFuelForm, EmissionsWasteForm, EmissionsElectricityForm, EmissionsChpHeatingForm, \
-    EmissionsHeatingForm, TransportEmissionsForm, RefrigerantEmissionsForm
+    EmissionsHeatingForm, RefrigerantEmissionsForm, CarForm
 from django.contrib.auth.decorators import login_required
 from .models import FuelModel, ElectricityModel, WasteModel, HeatingModelEmission, HomeHeatingModelEmissions, \
-    TransportModelEmissions, Result, RefrigerantModelEmissions
+    TransportModelEmissions, Result, RefrigerantModelEmissions, Car
 from django.contrib import messages
 from authentication.models import CustomUser
-from django.urls import reverse
 
 
 @login_required()
@@ -66,15 +66,27 @@ def calculate_fuel_emissions(request):
             # instance.total_electricity_emissions_monthly
             print(instance.fuel)
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.fuel.add(instance)
-            result.save()
+            fuels = FuelModel.objects.filter(user=request.user).select_related('user').order_by('time_created')
+            print(len(fuels))
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                           end_date=instance.end_date)
+            if created:
+                result.fuel.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'fuelmodel-partial.html', {'fuels': fuels})
+            else:
+                context = {
+                    'form': form,
+                    'fuels': fuels
+                }
 
-            return redirect('view_emissions', pk=instance.pk)
+            return render(request, 'fuel_emissions_form.html', context)
     else:
         form = EmissionFuelForm()
     messages.success(request, form.errors)
-    return render(request, 'fuel_emissions_form.html', {'form': form})
+    fuels = FuelModel.objects.filter(user=request.user).select_related('user').order_by('start_date')
+    return render(request, 'fuel_emissions_form.html', {'form': form, 'fuels': fuels})
 
 
 @login_required()
@@ -93,14 +105,30 @@ def calculate_waste_emissions(request):
                               {'form': form, 'error': 'End date must be bigger than start date'})
 
             instance.save()
-            result, created = Result.objects.get_or_create(user=request.user)
-            result.waste.add(instance)
-            result.save()
-            return redirect('view_waste_emissions', pk=instance.pk)
+            wasted = WasteModel.objects.filter(user=request.user).select_related('user').order_by('time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                           end_date=instance.end_date)
+            if created:
+                result.waste.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'wastemodel-partial.html', {'wasted': wasted})
+            else:
+                context = {
+                    'form': form,
+                    'wasted': wasted
+                }
+
+            return render(request, 'waste_emission_form.html', context)
     else:
         form = EmissionsWasteForm()
     messages.success(request, form.errors)
-    return render(request, 'waste_emission_form.html', {'form': form})
+    wasted = WasteModel.objects.filter(user=request.user).select_related('user').order_by('time_created')
+    context = {
+        'form': form,
+        'wasted': wasted
+    }
+    return render(request, 'waste_emission_form.html', context)
 
 
 @login_required()
@@ -126,15 +154,31 @@ def calculate_electricity_emissions(request):
                               {'form': form, 'error': 'End date must be bigger than start date'})
 
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.electricity.add(instance)
-            result.save()
+            electrics = ElectricityModel.objects.filter(user=request.user).select_related('user').order_by(
+                'time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                           end_date=instance.end_date)
+            if created:
+                result.electricity.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'electricitymodel-partial.html', {'electrics': electrics})
+            else:
+                context = {
+                    'form': form,
+                    'electrics': electrics
+                }
 
-            return redirect('view_electricity_emissions', pk=instance.pk)
+            return render(request, 'electricity_emissions_form.html', context)
     else:
         form = EmissionsElectricityForm()
     messages.success(request, form.errors)
-    return render(request, 'electricity_emissions_form.html', {'form': form})
+    electrics = ElectricityModel.objects.filter(user=request.user).select_related('user').order_by('time_created')
+    context = {
+        'form': form,
+        'electrics': electrics
+    }
+    return render(request, 'electricity_emissions_form.html', context)
 
 
 @login_required()
@@ -155,15 +199,31 @@ def calculate_chp_emissions1(request):
                               {'form': form, 'error': 'End date must be bigger than start date'})
 
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.chp.add(instance)
-            result.save()
+            chps = HeatingModelEmission.objects.filter(user=request.user).select_related('user').order_by(
+                'time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                           end_date=instance.end_date)
+            if created:
+                result.chp.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'chpmodel-partial.html', {'chps': chps})
+            else:
+                context = {
+                    'form': form,
+                    'chps': chps
+                }
 
-            return redirect('view_chp_emissions', pk=instance.pk)
+            return render(request, 'chp_emissions_form.html', context)
     else:
         form = EmissionsChpHeatingForm()
     messages.success(request, form.errors)
-    return render(request, 'chp_emissions_form.html', {'form': form})
+    chps = HeatingModelEmission.objects.filter(user=request.user).select_related('user').order_by('time_created')
+    context = {
+        'form': form,
+        'chps': chps
+    }
+    return render(request, 'chp_emissions_form.html', {'form': context})
 
 
 @login_required()
@@ -184,53 +244,69 @@ def calculate_home_heat_emissions(request):
                               {'form': form, 'error': 'End date must be bigger than start date'})
 
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.home_heating.add(instance)
-            result.save()
+            heatings = HomeHeatingModelEmissions.objects.filter(user=request.user).select_related('user').order_by(
+                'time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                  end_date=instance.end_date)
+            if created:
+                result.home_heating.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'heatingmodel-partial.html', {'heatings': heatings})
+            else:
+                context = {
+                    'form': form,
+                    'heatings': heatings
+                }
 
-            return redirect('view_home_heat_emissions', pk=instance.pk)
+            return render(request, 'heating_emissions_form.html', context)
     else:
         form = EmissionsChpHeatingForm()
     messages.success(request, form.errors)
-    return render(request, 'heating_emission_form.html', {'form': form})
-
-
-@login_required()
-def calculate_transport_emissions(request):
-    if request.method == 'POST':
-        form = TransportEmissionsForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            emissions_result = instance.calculate_emissions()
-            instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.transport.add(instance)
-            result.save()
-            return redirect('view_transport_emissions', pk=instance.pk)
-    else:
-        form = TransportEmissionsForm()
-    messages.success(request, form.errors)
-    return render(request, 'calculate_transport_emissions.html', {'form': form})
+    heatings = HomeHeatingModelEmissions.objects.filter(user=request.user).select_related('user').order_by(
+        'time_created')
+    context = {
+        'form': form,
+        'heatings': heatings
+    }
+    return render(request, 'heating_emission_form.html', context)
 
 
 @login_required()
 def calculate_refrigerant_emissions(request):
     if request.method == 'POST':
-        form = TransportEmissionsForm(request.POST)
+        form = RefrigerantEmissionsForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
             instance.user = request.user
-            emissions_result = instance.calculate_emissions()
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.transport.add(instance)
-            result.save()
-            return redirect('view_transport_emissions', pk=instance.pk)
+            refrigerants = RefrigerantModelEmissions.objects.filter(user=request.user).select_related('user').order_by(
+                'time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                  end_date=instance.end_date)
+            if created:
+                result.refrigerant.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'refrigerantmodel-partial.html', {'refrigerants': refrigerants})
+            else:
+                context = {
+                    'form': form,
+                    'refrigerants': refrigerants
+                }
+
+            return render(request, 'refrigerant_emission_form.html', context)
     else:
-        form = TransportEmissionsForm()
+        form = RefrigerantEmissionsForm()
     messages.success(request, form.errors)
-    return render(request, 'calculate_transport_emissions.html', {'form': form})
+    refrigerants = RefrigerantModelEmissions.objects.filter(user=request.user).select_related('user').order_by(
+        'time_created')
+    context = {
+        'form': form,
+        'refrigerants': refrigerants
+    }
+
+    return render(request, 'refrigerant_emission_form.html', context)
 
 
 @login_required()
@@ -241,11 +317,6 @@ def calculate_chp_emissions(request):
             instance = form.save(commit=False)
             user = CustomUser.objects.get(pk=request.user.pk)
             instance.user = user
-            fuel = FuelModel.objects.get(start_date=instance.start_date, end_date=instance.end_date)
-            if fuel.start_date != instance.start_date and fuel.end_date == instance.end_date:
-                return render(request, 'chp_emissions_form.html',
-                              {'form': form, 'error': 'Ensure your have checked your carbon emissions from the '
-                                                      'Fuel/Combustion Module'})
 
             start_date = instance.start_date
             end_date = instance.end_date
@@ -255,15 +326,86 @@ def calculate_chp_emissions(request):
                               {'form': form, 'error': 'End date must be bigger than start date'})
 
             instance.save()
-            result = Result.objects.get_or_create(user=request.user)
-            result.chp.add(instance)
-            result.save()
+            chps = HeatingModelEmission.objects.filter(user=request.user).select_related('user').order_by(
+                'time_created')
+            result, created = Result.objects.get_or_create(user=request.user, start_date=instance.start_date,
+                                                           end_date=instance.end_date)
+            if created:
+                result.chp.add(instance)
+                result.save()
+            if request.headers.get('Hx-Request'):
+                return render(request, 'chpmodel-partial.html', {'chps': chps})
+            else:
+                context = {
+                    'form': form,
+                    'chps': chps
+                }
 
-            return redirect('view_chp_emissions', pk=instance.pk)
+            return render(request, 'chp_emissions_form.html', context)
     else:
         form = EmissionsChpHeatingForm()
     messages.success(request, form.errors)
-    return render(request, 'chp_emissions_form.html', {'form': form})
+    chps = HeatingModelEmission.objects.filter(user=request.user).select_related('user').order_by('time_created')
+    context = {
+        'form': form,
+        'chps': chps
+    }
+    return render(request, 'chp_emissions_form.html', context)
+
+
+@login_required()
+def create_car(request):
+    if request.method == 'POST':
+        form = CarForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            print(instance.calculate_car_co2_emission())
+
+            # Unpack the tuple returned by get_or_create
+            transport, created = TransportModelEmissions.objects.get_or_create(
+                start_date=instance.start_date,
+                end_date=instance.end_date,
+                user=instance.user
+            )
+            # ignore the created as the car should be added to the transport instance either created or not.
+            transport.cars.add(instance)
+
+            #   cars = Car.objects.filter(user=request.user).select_related('user').order_by('time_created')
+            transports = TransportModelEmissions.objects.filter(user=request.user).select_related('user')
+
+            result, created = Result.objects.get_or_create(
+                user=request.user,
+                start_date=instance.start_date,
+                end_date=instance.end_date
+            )
+
+            if created:
+                result.transport.add(transport)
+                result.save()
+
+            if request.headers.get('Hx-Request'):
+                return render(request, 'transportmodel-partial.html', {'transports': transports})
+            else:
+                context = {
+                    'form': form,
+                    'transports': transports
+                }
+
+            return render(request, 'create_car.html', context)
+    else:
+        form = CarForm()
+
+    messages.success(request, form.errors)
+    #   cars = Car.objects.filter(user=request.user).select_related('user').order_by('time_created')
+    context = {
+        'form': form,
+        #   'cars': cars,
+        'transports': TransportModelEmissions.objects.filter(user=request.user).select_related('user')
+    }
+    #   transports = TransportModelEmissions.objects.filter(user=request.user).select_related('user')
+    return render(request, 'create_car.html', context)
 
 
 #   def view_emissions1(request, pk):
@@ -322,17 +464,18 @@ def view_electricity_emissions(request, pk):
 @login_required()
 def view_waste_emissions(request, pk):
     emission = WasteModel.objects.get(pk=pk)
-    if emission.calculate_waste_emissions() < 1000:
+    if emission.calculate_co2_emissions_from_waste() < 1000:
         grade = "Low Emissions"
-    elif emission.calculate_waste_emissions() < 3000:
+    elif emission.calculate_co2_emissions_from_waste() < 3000:
         grade = "Moderate Emissions"
-    elif emission.calculate_waste_emissions() < 6000:
+    elif emission.calculate_co2_emissions_from_waste() < 6000:
         grade = "High Emissions"
     else:
         grade = "Very High Emissions"
 
     context = {
         'emission': emission,
+        'emissions_result': round(emission.calculate_co2_emissions_from_waste(), 2),
         'grade': grade,
     }
     return render(request, 'waste_result.html', context)
@@ -341,38 +484,44 @@ def view_waste_emissions(request, pk):
 @login_required()
 def view_home_heating_emissions(request, pk):
     emission = HomeHeatingModelEmissions.objects.get(pk=pk)
-    if emission.calculate_home_heating_emissions() < 1000:
+    if emission.calculate_co2_emissions_from_home_heating_emissions() < 1000:
         grade = "Low Emissions"
-    elif emission.calculate_home_heating_emissions() < 3000:
+    elif emission.calculate_co2_emissions_from_home_heating_emissions() < 3000:
         grade = "Moderate Emissions"
-    elif emission.calculate_home_heating_emissions() < 6000:
+    elif emission.calculate_co2_emissions_from_home_heating_emissions() < 6000:
         grade = "High Emissions"
     else:
         grade = "Very High Emissions"
 
     context = {
         'emission': emission,
+        'emissions_result': round(emission.calculate_co2_emissions_from_home_heating_emissions(), 2),
         'grade': grade,
     }
-    return render(request, 'waste_result.html', context)
+    return render(request, 'heating_result.html', context)
+
+
+def get_heating_total_emissions(chp):
+    emissions = chp.calculate_co2_emissions_from_heating()
+    return emissions.get('total_emissions', 0)  # Extract 'total_emissions' from the dictionary
 
 
 @login_required()
 def view_chp_emissions(request, pk):
     emission = HeatingModelEmission.objects.get(pk=pk)
-    if emission.calculate_heating_emissions() < 1000:
+    if get_heating_total_emissions(emission) < 1000:
         grade = "Low Emissions"
-    elif emission.calculate_heating_emissions() < 3000:
+    elif get_heating_total_emissions(emission) < 3000:
         grade = "Moderate Emissions"
-    elif emission.calculate_heating_emissions() < 6000:
+    elif get_heating_total_emissions(emission) < 6000:
         grade = "High Emissions"
     else:
         grade = "Very High Emissions"
-    result = emission.calculate_heating_emissions()
+    result = emission.calculate_co2_emissions_from_heating()
 
     context = {
         'emission': emission,
-        'total_emissions': result['total_emissions'],
+        'total_emissions': round(result['total_emissions'], 2),
         'grade': grade,
     }
     return render(request, 'chp_result.html', context)
@@ -381,7 +530,7 @@ def view_chp_emissions(request, pk):
 @login_required()
 def view_transport_emissions(request, pk):
     emission = TransportModelEmissions.objects.get(pk=pk)
-    emissions_result = emission.calculate_emissions()
+    emissions_result = emission.calculate_transportation_emission()
 
     # Determine total emissions based on the returned type
     if isinstance(emissions_result, dict):
@@ -400,16 +549,16 @@ def view_transport_emissions(request, pk):
 
     context = {
         'emission': emission,
-        'emissions_result': emissions_result,
+        'emissions_result': round(emissions_result, 2),
         'grade': grade,
     }
     return render(request, 'transport_result.html', context)
 
 
 @login_required()
-def view_transport_emissions(request, pk):
+def view_refrigerant_emissions(request, pk):
     emission = RefrigerantModelEmissions.objects.get(pk=pk)
-    emissions_result = emission.calculate_transport_emissions()
+    emissions_result = emission.calculate_refrigerant_emissions()
 
     # Determine total emissions based on the returned type
     if isinstance(emissions_result, dict):
@@ -428,7 +577,7 @@ def view_transport_emissions(request, pk):
 
     context = {
         'emission': emission,
-        'emissions_result': emissions_result,
+        'emissions_result': round(emissions_result, 2),
         'grade': grade,
     }
     return render(request, 'refrigerant_result.html', context)

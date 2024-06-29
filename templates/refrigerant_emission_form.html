@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form hx-post="{% url 'calculate_refrigerant_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="innerHTML"
+          hx-on::after-request="this.reset()">
+        <div class="form-group">
+            <label for="start_date" style="color: #000000;">Start Date:</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date" style="color: #000000;">End date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="charge-amount-kg" style="color: #000000;">Charge Amount(the initial charge of refrigerant in kilograms)(KG)</label>
+            <input type="number" step="any" class="form-control" id="charge-amount-kg" name="charge_amount_kg" required>
+        </div>
+        <div class="form-group">
+            <label for="refrigerant" style="color: #000000;">Type of Refrigerant:</label>
+            <select class="form-control" id="refrigerant" name='refrigerant'>
+                <option selected>Choose...</option>
+                <option value="HFC-23">HFC-23</option>
+                <option value="HFC-32">HFC-32</option>
+                <option value="HFC-125">HFC-125</option>
+                <option value="HFC-134a">HFC-134a</option>
+                <option value="HFC-143a">HFC-143a</option>
+                <option value="HFC-152a">HFC-152a</option>
+                <option value="HFC-236fa">HFC-236fa</option>
+                <option value="R-401A">R-401A</option>
+                <option value="R-401B">R-401B</option>
+                <option value="R-401C">R-401C</option>
+                <option value="R-402A">R-402A</option>
+                <option value="R-402B">R-402B</option>
+                <option value="R-403A">R-403A</option>
+                <option value="R-403B">R-403B</option>
+                <option value="R-404A">R-404A</option>
+                <option value="R-407A">R-407A</option>
+                <option value="R-407B">R-407B</option>
+                <option value="R-407C">R-407C</option>
+                <option value="R-407D">R-407D</option>
+                <option value="R-407E">R-407E</option>
+                <option value="R-408A">R-408A</option>
+                <option value="R-409A">R-409A</option>
+                <option value="R-409B">R-409B</option>
+                <option value="R-410A">R-410A</option>
+                <option value="R-410B">R-410B</option>
+                <option value="R-411A">R-411A</option>
+                <option value="R-411B">R-411B</option>
+                <option value="R-412A">R-412A</option>
+                <option value="R-413A">R-413A</option>
+                <option value="R-414A">R-414A</option>
+                <option value="R-414B">R-414B</option>
+                <option value="R-415A">R-415A</option>
+                <option value="R-415B">R-415B</option>
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="leak-rate" style="color: #000000;">Leak Rate(expected annual leak rate as a percentage)(Litres)</label>
+            <input type="number" step="any" class="form-control" id="leak-rate" name="leak_rate" required>
+        </div>
+
+        <div class="form-group">
+            <label for="disposal-recovery-kg" style="color: #000000;">Disposal Recovery(amount of refrigerant recovered during the disposal of the equipment)(KG)</label>
+            <input type="number" step="any" class="form-control" id="disposal-recovery-kg" name="disposal_recovery_kg" required>
+        </div>
+
+        <div class="form-group">
+            <label for="retirement-recovery-kg" style="color: #000000;">Retirement Recovery(amount of refrigerant recovered when the equipment is retired)(KG)</label>
+            <input type="number" step="any" class="form-control" id="retirement-recovery-kg" name="retirement_recovery_kg" required>
+        </div>
+
+        <div class="form-group">
+            <label for="annual-top-up-kg" style="color: #000000;">Annual Top-Up(amount of refrigerant added annually to top up for leaks)(KG)</label>
+            <input type="number" step="any" class="form-control" id="annual-top-up-kg" name="annual_top_up_kg" required>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{% url 'calculate_transport_emissions' %}">Back</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-danger" href="#">Results</a>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container mt-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="color: #ffffff;">Start Date</th>
+                <th style="color: #ffffff;">End Date</th>
+                <th style="color: #ffffff;">Fuel Type</th>
+                <th style="color: #ffffff;">Fuel Volume</th>
+                <th style="color: #ffffff;">Total Emission</th>
+                <th style="color: #ffffff;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+          {% include 'refrigerantmodel-partial.html' with refrigerants=refrigerants %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

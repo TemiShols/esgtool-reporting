@@ -1,0 +1,35 @@
+{% for transport in transports %}
+<tr>
+    <td style="color: #ffffff;">{{ transport.start_date }}</td>
+    <td style="color: #ffffff;">{{ transport.end_date }}</td>
+    <td style="color: #ffffff;">
+        {% for car in transport.cars.all %}
+            <p>{{ car.name }}</p>
+        {% endfor %}
+    </td>
+    <td style="color: #ffffff;">
+        {% for car in transport.cars.all %}
+        <p>{{ car.fuel_quantity }}</p>
+        {% endfor %}
+    </td>
+    <td>
+        {% for car in transport.cars.all %}
+        <p>
+            {% with total_co2=car.calculate_car_co2_emission %}
+            {% if total_co2 < 3000 %}
+            <button class="btn btn-success">{{ total_co2 }}</button>
+            {% else %}
+            <button class="btn btn-danger">{{ total_co2 }}</button>
+            {% endif %}
+            {% endwith %}
+        </p>
+        {% endfor %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_transport_emissions' pk=transport.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+
+
+

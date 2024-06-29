@@ -1,0 +1,22 @@
+
+{% for fuel in fuels %}
+<tr>
+    <td style="color: #ffffff;">{{ fuel.start_date }}</td>
+    <td style="color: #ffffff;">{{ fuel.end_date }}</td>
+    <td style="color: #ffffff;">{{ fuel.fuel }}</td>
+    <td style="color: #ffffff;">{{ fuel.Af_v }}</td>
+    <td>
+        {% if fuel.calculate_fuel_co2_emissions < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{fuel.calculate_fuel_co2_emissions}}</button>
+        {% elif fuel.calculate_fuel_co2_emissions > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{fuel.calculate_fuel_co2_emissions}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_emissions' pk=fuel.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

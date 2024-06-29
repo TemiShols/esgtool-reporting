@@ -1,11 +1,7 @@
 from django.db import models
 from django.conf import settings
-import requests
-from django.core.exceptions import ValidationError
-from geopy.distance import geodesic
-from .helper import get_geocode
 from .constants import FUEL_CHOICES, COAL_TYPE, Vehicle, VEHICLE_EMISSIONS_FACTORS, REFRIGERANT_CHOICES, \
-    OXIDATION_FACTOR
+    TYPE_OF_TRANSPORT
 
 carbon_intensity_gco2_per_kwh = 400  # GCO2 https://ourworldindata.org/grapher/carbon-intensity-electricity also
 
@@ -21,12 +17,12 @@ carbon_intensity_gco2_per_kwh = 400  # GCO2 https://ourworldindata.org/grapher/c
 
 
 class FuelModel(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     fuel = models.CharField(max_length=50, choices=FUEL_CHOICES)
     coal_type = models.CharField(max_length=30, choices=COAL_TYPE)
-    Af_kw = models.FloatField(null=True, blank=True)  # Electricity consumption in kilowatt-hours (kWh)
     Af_v = models.FloatField(null=True, blank=True)  # Volume of fuel consumed(litres)
     Af_m = models.FloatField(null=True, blank=True)  # Mass of fuel consumed
     Af_h = models.FloatField(null=True, blank=True)  # Heat content of fuel consumed
@@ -39,16 +35,15 @@ class FuelModel(models.Model):
     #   total_carbon_emissions_monthly = models.IntegerField(null=True, blank=True)
     #   total_electricity_emissions_monthly = models.IntegerField(null=True, blank=True)
 
+    def __str__(self):
+        return self.fuel
+
     def get_density_for_fuel(self):
         # Define a dictionary to store the density for each type of fuel
         fuel_density = {
             'Diesel Oil': 0.85,  # Example density for Diesel Oil (in kg/L)0.82 - 0.86
             'Gas': 0.70,  # Example density for Gas (in kg/L)0.50-0.58
             'Petrol': 0.75,  # Example density for Petrol (in kg/L)0.72-0.77
-            'Anthracite': 28.0,
-            'Bituminous': 25.8,
-            'Sub-bituminous': 26.2,
-            'Lignite': 27.6
             # Add densities for other types of fuel as needed
         }
 
@@ -122,8 +117,9 @@ class FuelModel(models.Model):
 
 
 class WasteModel(models.Model):
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    time_created = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     waste_mass = models.FloatField()
     waste_treatment = models.CharField(max_length=50, choices=[
@@ -132,8 +128,9 @@ class WasteModel(models.Model):
         ('Incineration', 'Incineration'),
         ('Landfill', 'Landfill'),
     ])
-    source_of_waste = models.CharField(max_length=255)
-    destination_of_waste = models.CharField(max_length=255)
+    #   source_of_waste = models.CharField(max_length=255)
+    #   destination_of_waste = models.CharField(max_length=255)
+    distance_travelled = models.FloatField()
     vehicle_type = models.CharField(max_length=50, choices=Vehicle, null=True, blank=True)
     # Fields for composting(all provided in the pdf paper i.e calculation of GHG emissions from waste and waste to
     # energy projects)
@@ -162,35 +159,43 @@ class WasteModel(models.Model):
     landfill_gas_engine_efficiency = models.FloatField(default=0.5)
     landfill_co2_emissions_from_operations = models.FloatField(default=1.2)
 
-    def calculate_distance(self):
-        origin = self.source_of_waste
-        destination = self.destination_of_waste
+    #   def calculate_distance(self):
+    #   origin = self.source_of_waste
+    #   destination = self.destination_of_waste
 
-        origin = get_geocode(origin)
-        destination = get_geocode(destination)
+    #   origin = get_geocode(origin)
+    #   destination = get_geocode(destination)
 
-        if not origin or not destination:
-            return {'error': 'Unable to geocode the given addresses.'}
+    #   if not origin or not destination:
+    #   return {'error': 'Unable to geocode the given addresses.'}
 
-        distance = geodesic(origin, destination).kilometers
+    #   distance = geodesic(origin, destination).kilometers
 
-        return distance
+    #   return distance
+
+    #   def calculate_transport_emissions(self):
+    #   if self.source_of_waste and self.destination_of_waste and self.vehicle_type:
+    #   try:
+    #   distance = self.calculate_distance()
+    #   except ValueError as e:
+    #   return {'error':e}
+    #   vehicle_type = str(self.vehicle_type)
+    #   emissions_factor = VEHICLE_EMISSIONS_FACTORS.get(vehicle_type, 0)
+    #   if isinstance(distance, dict):
+    #   return {'error': 'Unable to geocode the given addresses.'}
+    #   transport_emissions = distance * emissions_factor
+    #   return transport_emissions
+    #   return 0
 
     def calculate_transport_emissions(self):
-        if self.source_of_waste and self.destination_of_waste and self.vehicle_type:
-            try:
-                distance = self.calculate_distance()
-            except ValueError as e:
-                return {'error':e}
+        if self.distance_travelled and self.vehicle_type:
+            distance = float(self.distance_travelled)
             vehicle_type = str(self.vehicle_type)
             emissions_factor = VEHICLE_EMISSIONS_FACTORS.get(vehicle_type, 0)
-            if isinstance(distance, dict):
-                return {'error': 'Unable to geocode the given addresses.'}
             transport_emissions = distance * emissions_factor
             return transport_emissions
-        return 0
 
-    def calculate_waste_emissions(self):
+    def calculate_co2_emissions_from_waste(self):
         waste_mass = self.waste_mass
         compost_ch4_emissions_factor = self.compost_ch4_emissions_factor
         compost_n2o_emissions_factor = self.compost_n2o_emissions_factor
@@ -271,17 +276,15 @@ class WasteModel(models.Model):
         else:
             total_emissions = 0
         transport_emissions = self.calculate_transport_emissions()
-        if isinstance(transport_emissions, dict):
-            return {'error': 'Unable to geocode the given addresses.'}
         total_emissions += transport_emissions
-
         return total_emissions
 
 
 class ElectricityModel(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     Af_kw = models.FloatField(null=True, blank=True)  # Electricity consumption in kilowatt-hours (kWh)
 
     def calculate_co2_emissions_from_electricity(self):
@@ -302,29 +305,56 @@ class ElectricityModel(models.Model):
 
 
 class HeatingModelEmission(models.Model):  # CHP
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    fuel = models.ForeignKey(FuelModel, on_delete=models.PROTECT)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    fuel = models.CharField(max_length=50, choices=FUEL_CHOICES)
+    fuel_volume = models.FloatField(default=15.0)
     steam_output = models.FloatField(help_text="Steam output in GJ")
     electricity_output = models.FloatField(help_text="Electricity output in GJ")
     steam_efficiency = models.FloatField(default=0.8, help_text="Steam efficiency as a decimal")
     electricity_efficiency = models.FloatField(default=0.35, help_text="Electricity efficiency as a decimal")
 
-    def clean(self):
-        if self.fuel:
-            fuel_start_date = self.fuel.start_date
-            fuel_end_date = self.fuel.end_date
+    def get_density_for_fuel(self):
+        # Define a dictionary to store the density for each type of fuel
+        fuel_density = {
+            'Diesel Oil': 0.85,  # Example density for Diesel Oil (in kg/L)0.82 - 0.86
+            'Gas': 0.70,  # Example density for Gas (in kg/L)0.50-0.58
+            'Petrol': 0.75,  # Example density for Petrol (in kg/L)0.72-0.77
+            'LPG': 0.54,  # Example density for LPG (in kg/L)
+            'Coal': 1.25,
+        }
 
-            if self.start_date != fuel_start_date or self.end_date != fuel_end_date:
-                raise ValidationError(
-                    "The start and end dates of the Heating Model Emission must match the Fuel Model's start and end "
-                    "dates.")
+        fuel_value = str(self.fuel)  # Convert the CharField to a string
+        return fuel_density.get(fuel_value, 0.0)
 
     def calculate_total_emissions(self):
-        return self.fuel.calculate_fuel_co2_emissions()
+        if self.fuel_volume is not None:
+            Af_v_value = float(self.fuel_volume)  # Volume of fuel consumed (litres)
+            if self.fuel == 'Petrol':
+                Fc_h_value = 2.31
+                Fox_value = 0.99
+            elif self.fuel == 'Diesel Oil':
+                Fc_h_value = 2.68
+                Fox_value = 0.99
+            elif self.fuel == 'LPG':
+                Fc_h_value = 1.96
+                Fox_value = 0.995
+            elif self.fuel == 'Coal':
+                Fc_h_value = 25.8
+                Fox_value = 0.98
+            else:
+                raise ValueError("Invalid fuel type")
 
-    def calculate_heating_emissions(self):
+            # Calculation based on volume
+            E = Af_v_value * Fc_h_value * Fox_value * (44 / 12)
+
+            return E
+
+        raise ValueError("Missing necessary fields to calculate emissions")
+
+    def calculate_co2_emissions_from_heating(self):
         total_emissions = self.calculate_total_emissions()
         H = float(self.steam_output)
         P = float(self.electricity_output)
@@ -347,6 +377,10 @@ class HeatingModelEmission(models.Model):  # CHP
         }
         return data
 
+    def return_total_emissions(self):
+        result = self.calculate_co2_emissions_from_heating()
+        return result['total_emissions']
+
     def __str__(self):
         return f"HeatingModelEmission from {self.start_date} to {self.end_date}"
 
@@ -359,14 +393,16 @@ FUEL_TYPE = (
     ('Hydroelectricity', 'Hydroelectricity'),
     ('Nuclear', 'Nuclear'),
     ('Solar', 'Solar'),
-    ('Wind', 'Wind')
+    ('Wind', 'Wind'),
+    ('Diesel Oil', 'Diesel Oil'),
 )
 
 
 class HomeHeatingModelEmissions(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     room_size = models.FloatField()  # square meters
     fuel = models.CharField(max_length=50, choices=FUEL_TYPE)
     fuel_volume = models.FloatField()  # litres
@@ -386,217 +422,39 @@ class HomeHeatingModelEmissions(models.Model):
         fuel_type = str(self.fuel)
         return intensity.get(fuel_type, 0.0)
 
-    def calculate_home_heating_emissions(self):
+    def calculate_co2_emissions_from_home_heating_emissions(self):
         emissions = float(self.fuel_volume) * self.get_carbon_intensity() / 1000 * float(self.room_size)
         return emissions  # KGCO2
 
 
 class TransportModelEmissions(models.Model):
-    MODE_OF_TRANSPORT = (
-        ('passenger_car', 'Passenger Car'),
-        ('light_duty_truck', 'Light-duty Truck'),
-        ('medium_heavy_duty_truck', 'Medium- and Heavy-duty Truck'),
-        ('short_haul_air', 'Short Haul Air'),
-        ('medium_haul_air', 'Medium Haul Air'),
-        ('long_haul_air', 'Long Haul Air'),
-        ('intercity_rail', 'Intercity Rail'),
-        ('commuter_rail', 'Commuter Rail'),
-        ('freight_rail', 'Freight Rail'),
-        ('marine_shipping', 'Marine Shipping'),
-    )
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
-    type = models.CharField(max_length=30, choices=MODE_OF_TRANSPORT)
-    mileage = models.CharField(max_length=7, null=True, blank=True)
-    source = models.CharField(max_length=255, null=True, blank=True)
-    destination = models.CharField(max_length=255, null=True, blank=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    cars = models.ManyToManyField('Car')
 
-    def calculate_distance(self):
-        origin = self.source
-        destination = self.destination
-
-        origin = get_geocode(origin)
-        destination = get_geocode(destination)
-
-        if not origin or not destination:
-            return {'error': 'Unable to geocode the given addresses.'}
-
-        distance = geodesic(origin, destination).kilometers
-
-        return distance
-
-    def calculate_transport_emissions(self):
-        distance = int(self.mileage)
-        if self.mileage:
-            co2_emissions = 0
-            ch4_emissions = 0
-            n2o_emissions = 0
-
-            if self.type == 'passenger_car':
-                co2_emissions = distance * 0.368
-                ch4_emissions = distance * 0.018 / 1000  # convert g to kg
-                n2o_emissions = distance * 0.013 / 1000  # convert g to kg
-            elif self.type == 'light_duty_truck':
-                co2_emissions = distance * 0.501
-                ch4_emissions = distance * 0.024 / 1000
-                n2o_emissions = distance * 0.019 / 1000
-            elif self.type == 'medium_heavy_duty_truck':
-                co2_emissions = distance * 1.456
-                ch4_emissions = distance * 0.018 / 1000
-                n2o_emissions = distance * 0.011 / 1000
-            elif self.type == 'short_haul_air':
-                co2_emissions = distance * 0.275
-                ch4_emissions = distance * 0.0091 / 1000
-                n2o_emissions = distance * 0.0087 / 1000
-            elif self.type == 'medium_haul_air':
-                co2_emissions = distance * 0.162
-                ch4_emissions = distance * 0.0008 / 1000
-                n2o_emissions = distance * 0.0052 / 1000
-            elif self.type == 'long_haul_air':
-                co2_emissions = distance * 0.191
-                ch4_emissions = distance * 0.0008 / 1000
-                n2o_emissions = distance * 0.0060 / 1000
-            elif self.type == 'intercity_rail':
-                co2_emissions = distance * 0.144
-                ch4_emissions = distance * 0.0085 / 1000
-                n2o_emissions = distance * 0.0032 / 1000
-            elif self.type == 'commuter_rail':
-                co2_emissions = distance * 0.174
-                ch4_emissions = distance * 0.0084 / 1000
-                n2o_emissions = distance * 0.0035 / 1000
-            elif self.type == 'freight_rail':
-                voc_emissions = distance * 0.14 / 1000
-                co_emissions = distance * 0.39 / 1000
-                nox_emissions = distance * 2.81 / 1000
-                pm10_emissions = distance * 0.07 / 1000
-                total_emissions = voc_emissions + co_emissions + nox_emissions + pm10_emissions
-                return {
-                    'VOC emissions': voc_emissions,
-                    'CO emissions': co_emissions,
-                    'NOx emissions': nox_emissions,
-                    'PM10 emissions': pm10_emissions,
-                    'Total emissions': total_emissions
-                }
-            elif self.type == 'marine_shipping':
-                co2_emissions = distance * 3188  # Placeholder values
-                ch4_emissions = distance * 0.23  # Placeholder values
-                n2o_emissions = distance * 0.08  # Placeholder values
-                co_emissions = distance * 21.3
-                nox_emissions = distance * 67.5
-                nmvoc_emissions = distance * 6.9
-                total_emissions = co2_emissions + ch4_emissions + n2o_emissions + co_emissions + nox_emissions + nmvoc_emissions
-                return {
-                    'CO2 emissions': co2_emissions,
-                    'CH4 emissions': ch4_emissions,
-                    'N2O emissions': n2o_emissions,
-                    'CO emissions': co_emissions,
-                    'NOx emissions': nox_emissions,
-                    'NMVOC emissions': nmvoc_emissions,
-                    'Total emissions': total_emissions
-                }
-
-            total_emissions = co2_emissions + ch4_emissions + n2o_emissions
-            return {
-                'CO2 emissions': co2_emissions,
-                'CH4 emissions': ch4_emissions,
-                'N2O emissions': n2o_emissions,
-                'Total emissions': total_emissions
-            }
-        else:
-            calculated_distance = self.calculate_distance()
-            if isinstance(calculated_distance, dict) and 'error' in calculated_distance:
-                return calculated_distance
-
-            co2_emissions = 0
-            ch4_emissions = 0
-            n2o_emissions = 0
-
-            if self.type == 'passenger_car':
-                co2_emissions = calculated_distance * 0.368
-                ch4_emissions = calculated_distance * 0.018 / 1000  # convert g to kg
-                n2o_emissions = calculated_distance * 0.013 / 1000  # convert g to kg
-            elif self.type == 'light_duty_truck':
-                co2_emissions = calculated_distance * 0.501
-                ch4_emissions = calculated_distance * 0.024 / 1000
-                n2o_emissions = calculated_distance * 0.019 / 1000
-            elif self.type == 'medium_heavy_duty_truck':
-                co2_emissions = calculated_distance * 1.456
-                ch4_emissions = calculated_distance * 0.018 / 1000
-                n2o_emissions = calculated_distance * 0.011 / 1000
-            elif self.type == 'short_haul_air':
-                co2_emissions = calculated_distance * 0.275
-                ch4_emissions = calculated_distance * 0.0091 / 1000
-                n2o_emissions = calculated_distance * 0.0087 / 1000
-            elif self.type == 'medium_haul_air':
-                co2_emissions = calculated_distance * 0.162
-                ch4_emissions = calculated_distance * 0.0008 / 1000
-                n2o_emissions = calculated_distance * 0.0052 / 1000
-            elif self.type == 'long_haul_air':
-                co2_emissions = calculated_distance * 0.191
-                ch4_emissions = calculated_distance * 0.0008 / 1000
-                n2o_emissions = calculated_distance * 0.0060 / 1000
-            elif self.type == 'intercity_rail':
-                co2_emissions = calculated_distance * 0.144
-                ch4_emissions = calculated_distance * 0.0085 / 1000
-                n2o_emissions = calculated_distance * 0.0032 / 1000
-            elif self.type == 'commuter_rail':
-                co2_emissions = calculated_distance * 0.174
-                ch4_emissions = calculated_distance * 0.0084 / 1000
-                n2o_emissions = calculated_distance * 0.0035 / 1000
-            elif self.type == 'freight_rail':
-                voc_emissions = calculated_distance * 0.14 / 1000
-                co_emissions = calculated_distance * 0.39 / 1000
-                nox_emissions = calculated_distance * 2.81 / 1000
-                pm10_emissions = calculated_distance * 0.07 / 1000
-                total_emissions = voc_emissions + co_emissions + nox_emissions + pm10_emissions
-                return {
-                    'VOC emissions': voc_emissions,
-                    'CO emissions': co_emissions,
-                    'NOx emissions': nox_emissions,
-                    'PM10 emissions': pm10_emissions,
-                    'Total emissions': total_emissions
-                }
-            elif self.type == 'marine_shipping':
-                co2_emissions = calculated_distance * 3188  # Placeholder values
-                ch4_emissions = calculated_distance * 0.23  # Placeholder values
-                n2o_emissions = calculated_distance * 0.08  # Placeholder values
-                co_emissions = calculated_distance * 21.3
-                nox_emissions = calculated_distance * 67.5
-                nmvoc_emissions = calculated_distance * 6.9
-                total_emissions = co2_emissions + ch4_emissions + n2o_emissions + co_emissions + nox_emissions + nmvoc_emissions
-                return {
-                    'CO2 emissions': co2_emissions,
-                    'CH4 emissions': ch4_emissions,
-                    'N2O emissions': n2o_emissions,
-                    'CO emissions': co_emissions,
-                    'NOx emissions': nox_emissions,
-                    'NMVOC emissions': nmvoc_emissions,
-                    'Total emissions': total_emissions
-                }
-
-            total_emissions = co2_emissions + ch4_emissions + n2o_emissions
-            return {
-                'CO2 emissions': co2_emissions,
-                'CH4 emissions': ch4_emissions,
-                'N2O emissions': n2o_emissions,
-                'Total emissions': total_emissions
-            }
+    def calculate_transportation_emission(self):
+        total = 0
+        for car in self.cars.all():
+            total += car.calculate_car_co2_emission()
+        return total
 
 
 # Regrigeration/AC equipment # https://ghgprotocol.org/calculation-tools-and-guidance
 
 class RefrigerantModelEmissions(models.Model):
-    name = models.CharField(max_length=100)
+    time_created = models.DateTimeField(auto_now_add=True)
     refrigerant = models.CharField(max_length=50, choices=[(r[0], r[0]) for r in REFRIGERANT_CHOICES])
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     charge_amount_kg = models.FloatField()  # the initial charge of refrigerant in kilograms.
     leak_rate = models.FloatField()  # expected annual leak rate as a percentage.
     annual_top_up_kg = models.FloatField()  # amount of refrigerant added annually to top up for leaks.
     disposal_recovery_kg = models.FloatField()  # amount of refrigerant recovered during the disposal of the equipment.
     retirement_recovery_kg = models.FloatField(null=True, blank=True)  # amount of refrigerant recovered when the
+
     # equipment is retired.
 
     def get_gwp(self):
@@ -605,7 +463,7 @@ class RefrigerantModelEmissions(models.Model):
                 return refrigerant[1]
         return 0
 
-    def calculate_emissions(self):
+    def calculate_refrigerant_emissions(self):
         installation_emissions = float(self.charge_amount_kg) * float(self.leak_rate)
         use_emissions = float(self.annual_top_up_kg)
         disposal_emissions = float(self.charge_amount_kg) - float(self.disposal_recovery_kg)
@@ -618,11 +476,14 @@ class RefrigerantModelEmissions(models.Model):
         return co2_equivalent_emissions
 
     def __str__(self):
-        return self.name
+        return self.refrigerant
 
 
 class Result(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    start_date = models.DateField()
+    end_date = models.DateField()
     result_updated = models.DateTimeField(auto_now=True)
     date_created = models.DateTimeField(auto_now_add=True)
     fuel = models.ManyToManyField(FuelModel)
@@ -632,3 +493,71 @@ class Result(models.Model):
     home_heating = models.ManyToManyField(HomeHeatingModelEmissions)
     transport = models.ManyToManyField(TransportModelEmissions)
     refrigerant = models.ManyToManyField(RefrigerantModelEmissions)
+
+
+class Car(models.Model):
+    time_created = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=25)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    registration_number = models.CharField(max_length=9)
+    type = models.CharField(max_length=55, choices=TYPE_OF_TRANSPORT)
+    mileage = models.CharField(max_length=7)
+    fuel_type = models.CharField(max_length=50, choices=FUEL_CHOICES)
+    fuel_quantity = models.FloatField()
+
+    def __str__(self):
+        return self.name
+
+    def get_density_for_fuel(self, fuel_type):
+        # Define a dictionary to store the density for each type of fuel
+        fuel_density = {
+            'Diesel Oil': 0.85,  # Example density for Diesel Oil (in kg/L)0.82 - 0.86
+            'Gas': 0.70,  # Example density for Gas (in kg/L)0.50-0.58
+            'Petrol': 0.75,  # Example density for Petrol (in kg/L)0.72-0.77
+            # Add densities for other types of fuel as needed
+        }
+
+        return fuel_density.get(fuel_type, 0.0)
+
+    def calculate_car_co2_emission(self):
+        distance = float(self.mileage)
+        quantity = float(self.fuel_quantity)
+
+        Fc_h_value = 0
+        Fox_value = 0
+        co2_emissions_based_on_distance = 0
+
+        if self.fuel_type == 'Diesel Oil':
+            Fc_h_value = 2.68
+            Fox_value = 0.99
+            if self.type == 'passenger_car':
+                co2_emissions_based_on_distance = distance * 0.368
+            elif self.type == 'light_duty_truck':
+                co2_emissions_based_on_distance = distance * 0.501
+            elif self.type == 'medium_heavy_duty_truck':
+                co2_emissions_based_on_distance = distance * 1.456
+        elif self.fuel_type == 'Petrol':
+            Fc_h_value = 2.31
+            Fox_value = 0.99
+            if self.type == 'passenger_car':
+                co2_emissions_based_on_distance = distance * 0.368
+            elif self.type == 'light_duty_truck':
+                co2_emissions_based_on_distance = distance * 0.501
+            elif self.type == 'medium_heavy_duty_truck':
+                co2_emissions_based_on_distance = distance * 1.456
+        elif self.fuel_type == 'LPG':
+            Fc_h_value = 1.96
+            Fox_value = 0.995
+            if self.type == 'passenger_car':
+                co2_emissions_based_on_distance = distance * 0.368
+            elif self.type == 'light_duty_truck':
+                co2_emissions_based_on_distance = distance * 0.501
+            elif self.type == 'medium_heavy_duty_truck':
+                co2_emissions_based_on_distance = distance * 1.456
+
+        co2_emission_based_on_fuel = self.get_density_for_fuel(self.fuel_type) * quantity * Fc_h_value * Fox_value * (
+                    44 / 12)
+        total_co2_emissions = co2_emissions_based_on_distance + co2_emission_based_on_fuel
+        return total_co2_emissions

@@ -1,0 +1,21 @@
+{% for waste in wasted %}
+<tr>
+    <td style="color: #ffffff;">{{ waste.start_date }}</td>
+    <td style="color: #ffffff;">{{ waste.end_date }}</td>
+    <td style="color: #ffffff;">{{ waste.waste_mass }}</td>
+    <td style="color: #ffffff;">{{ waste.waste_treatment }}</td>
+    <td>
+        {% if waste.calculate_co2_emissions_from_waste < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{waste.calculate_co2_emissions_from_waste}}</button>
+        {% elif waste.calculate_co2_emissions_from_waste > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{waste.calculate_co2_emissions_from_waste}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_waste_emissions' pk=waste.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

@@ -1,0 +1,22 @@
+
+{% for heating in heatings %}
+<tr>
+    <td style="color: #ffffff;">{{ heating.start_date }}</td>
+    <td style="color: #ffffff;">{{ heating.end_date }}</td>
+    <td style="color: #ffffff;">{{ heating.fuel }}</td>
+    <td style="color: #ffffff;">{{ heating.fuel_volume }}</td>
+    <td>
+        {% if heating.calculate_co2_emissions_from_home_heating_emissions < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{heating.calculate_co2_emissions_from_home_heating_emissions}}</button>
+        {% elif heating.calculate_co2_emissions_from_home_heating_emissions > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{heating.calculate_co2_emissions_from_home_heating_emissions}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_home_heating_emissions' pk=heating.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

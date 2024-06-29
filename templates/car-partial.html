@@ -1,0 +1,13 @@
+{% for car in transports.cars.all %}
+<tr>
+    <td>
+        {% for car in transports.cars.all %}
+        <p>{{car.name}} using {{car.fuel_type}} emitted {{car.calculate_car_co2_emission}} from {{car.fuel_quantity}}</p>
+        {% endfor %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_transport_emissions' pk=car.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

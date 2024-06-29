@@ -4,30 +4,68 @@
 
 <div class="form-container">
     {% include 'messages.html' %}
-    <form action="{% url 'calculate_chp_emissions' %}" method="post">
-        {% csrf_token %}
+    <form hx-post="{% url 'calculate_chp_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="innerHTML"
+          hx-on::after-request="this.reset()">
         <div class="form-group">
-            <label for="start_date">Start Date:</label>
-            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+            <label for="start_date" style="color: #000000;">Start Date:</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
         </div>
         <div class="form-group">
-            <label for="end_date">End date</label>
-            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+            <label for="end_date" style="color: #000000;">End date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
         </div>
         <div class="form-group">
-            <label for="total-emissions">Total emissions(To be worked on backend.Should be calculated backend)</label>
-            <input type="text" class="form-control" id="total-emissions" name="total_emissions" required>
+            <label for="fuel" style="color: #000000;">Type of Fuel:</label>
+            <select class="form-control" id="fuel" name='fuel'>
+                <option selected>Choose...</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel Oil">Diesel Oil</option>
+                <option value="LPG">LPG</option>
+                <option value="Coal">Coal</option>
+            </select>
         </div>
         <div class="form-group">
-            <label for="steam-output">Steam Output(This can be confirmed on machinery)</label>
-            <input type="text" class="form-control" id="steam-output" name="steam_output" required>
+            <label for="fuel-volume" style="color: #000000;">Volume of Fuel(Litres)</label>
+            <input type="number" step="any" class="form-control" id="fuel-volume" name="fuel_volume" required>
         </div>
         <div class="form-group">
-            <label for="electricity-output">Steam Output(This can be confirmed on machinery)</label>
-            <input type="text" class="form-control" id="electricity-output" name="electricity_output" required>
+            <label for="electricity-output" style="color: #000000;">Electricity Output(This can be confirmed on machinery)</label>
+            <input type="number" step="any" class="form-control" id="electricity-output" name="electricity_output" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="form-group">
+            <label for="steam-output" style="color: #000000;">Steam Output(This can be confirmed on machinery)</label>
+            <input type="number" step="any" class="form-control" id="steam-output" name="steam_output" required>
+        </div>
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{% url 'calculate_waste_emissions' %}">Back</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-danger" href="{% url 'calculate_home_heat_emissions' %}">Next</a>
+            </div>
+        </div>
     </form>
+</div>
+
+
+<div class="container mt-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="color: #ffffff;">Start Date</th>
+                <th style="color: #ffffff;">End Date</th>
+                <th style="color: #ffffff;">Fuel Type</th>
+                <th style="color: #ffffff;">Steam Output</th>
+                <th style="color: #ffffff;">Electricity Output</th>
+                <th style="color: #ffffff;">Total Emission</th>
+                <th style="color: #ffffff;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+          {% include 'chpmodel-partial.html' with chps=chps %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

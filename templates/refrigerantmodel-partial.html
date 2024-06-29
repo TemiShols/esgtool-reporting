@@ -1,0 +1,23 @@
+{% for refrigerant in refrigerants %}
+
+
+<tr>
+    <td style="color: #ffffff;">{{ refrigerant.start_date }}</td>
+    <td style="color: #ffffff;">{{ refrigerant.end_date }}</td>
+    <td style="color: #ffffff;">{{ refrigerant.refrigerant }}</td>
+    <td style="color: #ffffff;">{{ refrigerant.charge_amount_kg }}</td>
+    <td>
+        {% if refrigerant.calculate_refrigerant_emissions < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{refrigerant.calculate_refrigerant_emissions}}</button>
+        {% elif refrigerant.calculate_refrigerant_emissions > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{refrigerant.calculate_refrigerant_emissions}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_refrigerant_emissions' pk=refrigerant.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

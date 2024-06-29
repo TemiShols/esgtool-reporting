@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'authentication',
     'reporting',
     'drf_yasg',
+    'bootstrap_pagination',
 ]
 
 MIDDLEWARE = [

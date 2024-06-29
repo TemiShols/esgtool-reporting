@@ -1,13 +1,14 @@
 from django.contrib import admin
-from .models import FuelModel, ElectricityModel, WasteModel, HeatingModelEmission, HomeHeatingModelEmissions, TransportModelEmissions, RefrigerantModelEmissions, Result
+from .models import FuelModel, ElectricityModel, WasteModel, HeatingModelEmission, HomeHeatingModelEmissions, TransportModelEmissions,\
+    RefrigerantModelEmissions, Result, Car
 
 
 class FuelDataAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date', 'fuel', 'Af_kw', 'Af_v', 'Af_m', 'Af_h', 'Fc_v', 'Fc_m', 'Fc_h', 'Fox',)
+    list_display = ('start_date', 'end_date', 'fuel', 'Af_v', 'Af_m', 'Af_h', 'Fc_v', 'Fc_m', 'Fc_h', 'Fox',)
 
 
 class WasteDataAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date', 'waste_treatment', 'waste_mass',)
+    list_display = ('start_date', 'end_date', 'waste_treatment', 'vehicle_type', 'waste_mass', 'distance_travelled')
 
 
 class ElectricityDataAdmin(admin.ModelAdmin):
@@ -15,7 +16,7 @@ class ElectricityDataAdmin(admin.ModelAdmin):
 
 
 class HeatingDataAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date', 'steam_output', 'electricity_output',)
+    list_display = ('start_date', 'end_date', 'steam_output', 'electricity_output', 'fuel', 'fuel_volume',)
 
 
 class HomeHeatingDataAdmin(admin.ModelAdmin):
@@ -23,7 +24,11 @@ class HomeHeatingDataAdmin(admin.ModelAdmin):
 
 
 class TransportDataAdmin(admin.ModelAdmin):
-    list_display = ('start_date', 'end_date', 'type', 'mileage', 'source', 'destination')
+    list_display = ('start_date', 'end_date', 'user', )
+
+
+class CarDataAdmin(admin.ModelAdmin):
+    list_display = ('start_date', 'end_date', 'user', 'type', 'name', 'mileage', 'fuel_type', 'fuel_quantity')
 
 
 class RefrigerantDataAdmin(admin.ModelAdmin):
@@ -37,6 +42,7 @@ class ResultDataAdmin(admin.ModelAdmin):
 admin.site.register(FuelModel, FuelDataAdmin)
 admin.site.register(WasteModel, WasteDataAdmin)
 admin.site.register(TransportModelEmissions, TransportDataAdmin)
+admin.site.register(Car, CarDataAdmin)
 admin.site.register(RefrigerantModelEmissions, RefrigerantDataAdmin)
 admin.site.register(HeatingModelEmission, HeatingDataAdmin)
 admin.site.register(HomeHeatingModelEmissions, HomeHeatingDataAdmin)

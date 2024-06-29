@@ -4,30 +4,28 @@
 
 <div class="form-container">
     {% include 'messages.html' %}
-    <form action="{% url 'calculate_waste_emissions' %}" method="post">
+    <form hx-post="{% url 'calculate_waste_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="innerHTML"
+          hx-on::after-request="this.reset()">
         {% csrf_token %}
         <div class="form-group">
-            <label for="start_date">Start Date:</label>
-            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+            <label for="start_date" style="color: #000000;">Start Date:</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
         </div>
 
         <div class="form-group">
-            <label for="end_date">End date</label>
-            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+            <label for="end_date" style="color: #000000;">End date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
         </div>
 
         <div class="form-group">
-            <label for="source-Address">Source Address of waste</label>
-            <input type="datetime-local" class="form-control" id="source-Address" name="end_date" required>
+            <label for="distance_travelled" style="color: #000000;">Distance to Waste Disposal Site</label>
+            <input type="number" step="any" class="form-control" id="distance_travelled" name="distance_travelled" required>
         </div>
 
         <div class="form-group">
-            <label for="destination-address">Destination Address of Waste Disposal Site</label>
-            <input type="datetime-local" class="form-control" id="destination-address" name="end_date" required>
-        </div>
-
-        <div class="form-group">
-            <label for="waste_treatment">Treatment type:</label>
+            <label for="waste_treatment" style="color: #000000;">Treatment type:</label>
             <select class="form-control" id="waste_treatment" name='waste_treatment'>
                 <option selected>Choose...</option>
                 <option value="Anaerobic Digestion">Anaerobic Digestion</option>
@@ -38,7 +36,7 @@
         </div>
 
         <div class="form-group">
-            <label for="vehicle-type">Vehicle type:</label>
+            <label for="vehicle-type" style="color: #000000;">Vehicle type:</label>
             <select class="form-control" id="vehicle-type" name='vehicle_type'>
                 <option selected>Choose...</option>
                 <option value="Truck">Truck</option>
@@ -48,11 +46,38 @@
         </div>
 
         <div class="form-group">
-            <label for="waste_mass">Quantity of Waste(kg/MT)</label>
-            <input type="text" class="form-control" id="waste_mass" name="waste_mass" required>
+            <label for="waste_mass" style="color: #000000;">Quantity of Waste(kg/MT)</label>
+            <input type="number" step="any" class="form-control" id="waste_mass" name="waste_mass" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{% url 'calculate_electricity_emissions' %}">Back</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-danger" href="{% url 'calculate_chp_emissions' %}">Next</a>
+
+            </div>
+        </div>
     </form>
+</div>
+
+
+
+<div class="container mt-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="color: #ffffff;">Start Date</th>
+                <th style="color: #ffffff;">End Date</th>
+                <th style="color: #ffffff;">Waste Mass</th>
+                <th style="color: #ffffff;">Waste Treatment Type</th>
+                <th style="color: #ffffff;">Total Emission</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+          {% include 'wastemodel-partial.html' with wasted=wasted %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

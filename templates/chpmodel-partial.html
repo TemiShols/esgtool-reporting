@@ -1,0 +1,22 @@
+{% for chp in chps %}
+<tr>
+    <td style="color: #ffffff;">{{ chp.start_date }}</td>
+    <td style="color: #ffffff;">{{ chp.end_date }}</td>
+    <td style="color: #ffffff;">{{ chp.fuel }}</td>
+    <td style="color: #ffffff;">{{ chp.steam_output }}</td>
+    <td style="color: #ffffff;">{{ chp.electricity_output }}</td>
+    <td>
+        {% if chp.return_total_emissions < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{chp.return_total_emissions}}</button>
+        {% elif chp.return_total_emissions > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{chp.return_total_emissions}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_chp_emissions' pk=chp.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

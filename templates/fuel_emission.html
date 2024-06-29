@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load partials %}
+{% load static %}
+{% block content %}
+
+<div class="form-container">
+    {% include 'messages.html' %}
+    <form hx-post="{% url 'calculate_fuel_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="beforeend"
+          hx-on::after-request="this.reset()">
+        <div class="form-group">
+            <label for="start_date">Start Date</label>
+            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+        </div>
+        <div class="form-group">
+            <label for="end_date">End Date</label>
+            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+        </div>
+        <div class="form-group">
+            <label for="fuel">Type of Fuel:</label>
+            <select class="form-control" id="fuel" name='fuel'>
+                <option selected>Choose...</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel Oil">Diesel Oil</option>
+                <option value="LPG">LPG</option>
+                <option value="Coal">Coal</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="coal">Type of Fuel:</label>
+            <select class="form-control" id="coal" name='coal_type'>
+                <option selected>Choose...</option>
+                <option value="Anthracite">Anthracite</option>
+                <option value="Bituminous">Bituminous</option>
+                <option value="Lignite">Lignite</option>
+                <option value="None">None(Don't use Coal)</option>
+                <option value="Sub-bituminous">Sub-bituminous</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="Af_v">Volume of fuel consumed(litres)</label>
+            <input type="text" class="form-control" id="Af_v" name="Af_v" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<div class="container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Fuel Type</th>
+                <th>Volume(litres)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+        {% for fuel in fuels %}
+            {% partialdef fuelmodel-partial inline=True %}
+           <tr>
+                    <td>{{ fuel.start_date }}</td>
+                    <td>{{ fuel.end_date }}</td>
+                    <td>{{ fuel.fuel }}</td>
+                    <td>{{ fuel.Af_v }}</td>
+            <td>
+                <button class="btn btn-success"
+                    hx-post="#"
+                    hx-target="closest tr"
+                    hx-swap="outerHTML">Mark Complete</button>
+
+                <button class="btn btn-danger"
+                    hx-delete=""
+                    hx-on:delete-todo="this.closest('tr').remove()">Delete</button>
+            </td>
+        </tr>
+        {% endpartialdef %}
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

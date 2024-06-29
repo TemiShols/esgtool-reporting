@@ -1,0 +1,20 @@
+{% for electric in electrics %}
+<tr>
+    <td style="color: #ffffff;">{{ electric.start_date }}</td>
+    <td style="color: #ffffff;">{{ electric.end_date }}</td>
+    <td style="color: #ffffff;">{{ electric.Af_kw }}</td>
+    <td>
+        {% if electric.calculate_co2_emissions_from_electricity < 3000 %}
+        <button class="btn btn-success"
+                hx-swap="outerHTML">{{electric.calculate_co2_emissions_from_electricity}}</button>
+        {% elif electric.calculate_co2_emissions_from_electricity > 3000 %}
+            <button class="btn btn-danger"
+                hx-swap="outerHTML">{{electric.calculate_co2_emissions_from_electricity}}</button>
+        {% endif %}
+    </td>
+    <td>
+        <a class="btn btn-primary" href="{% url 'view_electricity_emissions' pk=electric.pk %}">View Report</a>
+    </td>
+</tr>
+{% endfor %}
+

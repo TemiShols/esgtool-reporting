@@ -4,22 +4,49 @@
 
 <div class="form-container">
     {% include 'messages.html' %}
-    <form action="{% url 'calculate_electricity_emissions' %}" method="post">
-        {% csrf_token %}
+    <form hx-post="{% url 'calculate_electricity_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="innerHTML"
+          hx-on::after-request="this.reset()">
         <div class="form-group">
-            <label for="start_date">Type of Fuel:</label>
-            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+            <label for="start_date" style="color: #000000;">Start Date:</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
         </div>
         <div class="form-group">
-            <label for="end_date">Type of Fuel:</label>
-            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+            <label for="end_date" style="color: #000000;">End of Date:</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
         </div>
         <div class="form-group">
-            <label for="Af_kw">Electricity consumption in kilowatt-hours (kWh)</label>
-            <input type="text" class="form-control" id="Af_kw" name="Af_kw" required>
+            <label for="Af_kw" style="color: #000000;">Electricity consumption in kilowatt-hours (kWh)</label>
+            <input type="number" step="any" class="form-control" id="Af_kw" name="Af_kw" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{% url 'calculate_fuel_emissions' %}">Back</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-danger" href="{% url 'calculate_waste_emissions' %}">Next</a>
+
+            </div>
+        </div>
     </form>
+</div>
+
+
+<div class="container mt-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="color: #ffffff;">Start Date</th>
+                <th style="color: #ffffff;">End Date</th>
+                <th style="color: #ffffff;">Energy Consumed(Kw/h)</th>
+                <th style="color: #ffffff;">Total Emissions</th>
+                <th style="color: #ffffff;">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+          {% include 'electricitymodel-partial.html' with electrics=electrics %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}

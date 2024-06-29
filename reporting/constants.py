@@ -42,11 +42,11 @@ COAL_TYPE = (
     ('None', 'None'),
 )
 
-Vehicle = (
+Vehicle = [
     ('Truck', 'Truck'),
     ('Van', 'Van'),
     ('Other', 'Other'),
-)
+]
 
 # sources of the emission factors
 VEHICLE_EMISSIONS_FACTORS = {
@@ -69,3 +69,17 @@ OXIDATION_FACTOR = (  # IPCC standard  Intergovernmental Panel on Climate Change
     (0.99, 0.99),
     (0.995, 0.995)
 )
+
+
+TYPE_OF_TRANSPORT = (
+        ('Passenger Car', 'Passenger Car'),
+        ('Light-duty Truck', 'Light-duty Truck'),
+        ('Medium- and Heavy-duty Truck', 'Medium- and Heavy-duty Truck'),
+        #   ('short_haul_air', 'Short Haul Air'),
+        #   ('medium_haul_air', 'Medium Haul Air'),
+        #   ('long_haul_air', 'Long Haul Air'),
+        #   ('intercity_rail', 'Intercity Rail'),
+        #   ('commuter_rail', 'Commuter Rail'),
+        #   ('freight_rail', 'Freight Rail'),
+        #   ('marine_shipping', 'Marine Shipping'),
+    )

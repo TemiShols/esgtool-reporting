@@ -1,9 +1,10 @@
 import random
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from reporting.models import (FuelModel, WasteModel, ElectricityModel, HeatingModelEmission,
-                              HomeHeatingModelEmissions, TransportModelEmissions, RefrigerantModelEmissions, Result
-                              )
+from reporting.models import (
+    FuelModel, WasteModel, ElectricityModel, HeatingModelEmission,
+    HomeHeatingModelEmissions, TransportModelEmissions, RefrigerantModelEmissions, Result, Car
+)
 from authentication.models import CustomUser
 
 
@@ -36,7 +37,7 @@ class Command(BaseCommand):
                 Af_v=random.uniform(0.5, 2.0),
                 Fc_h=random.uniform(0.5, 2.0),
                 Fox=random.uniform(0.5, 2.0),
-                fuel=random.choice(['Diesel Oil', 'Petrol', 'LPG',]),
+                fuel=random.choice(['Diesel Oil', 'Petrol', 'LPG']),
                 coal_type='None'
             )
 
@@ -48,8 +49,7 @@ class Command(BaseCommand):
                 end_date=timezone.now() + timezone.timedelta(days=30),
                 waste_mass=random.uniform(100, 500),
                 waste_treatment=random.choice(['Composting', 'Anaerobic Digestion', 'Incineration', 'Landfill']),
-                source_of_waste='8 Abudu Obayomi street, Yakoyo, Ojodu Berger',
-                destination_of_waste='Alh. Abayomi Adelaja Dr, Onigbongbo, Lagos',
+                distance_travelled=random.uniform(25, 200),
                 vehicle_type=random.choice(['Truck', 'Van', 'Other'])
             )
 
@@ -80,20 +80,40 @@ class Command(BaseCommand):
                 user=user,
                 start_date=timezone.now(),
                 end_date=timezone.now() + timezone.timedelta(days=30),
-                fuel=random.choice(['Coal', 'Petroleum', 'LPG', 'Geothermal', 'Hydroelectricity', 'Nuclear', 'Solar', 'Wind', 'Diesel Oil']),
+                fuel=random.choice(
+                    ['Coal', 'Petroleum', 'LPG', 'Geothermal', 'Hydroelectricity', 'Nuclear', 'Solar', 'Wind', 'Diesel Oil']
+                ),
                 room_size=random.uniform(3, 5),
                 fuel_volume=random.uniform(500, 1500)
             )
 
-        # Populate TransportModelEmissions
+        # Create Car instances
+        car_types = ['passenger_car', 'light_duty_truck', 'medium_heavy_duty_truck']
+        fuel_types = ['Diesel Oil', 'Petrol', 'LPG']
+        cars = []
+        for i in range(10):  # Creating 10 cars
+            car = Car.objects.create(
+                user=user,
+                name=f'Car {i + 1}',
+                registration_number=f'ABC{i + 1:03}',
+                start_date=timezone.now(),
+                end_date=timezone.now() + timezone.timedelta(days=30),
+                type=random.choice(car_types),
+                mileage=f'{random.uniform(10, 200):.2f}',
+                fuel_type=random.choice(fuel_types),
+                fuel_quantity=random.uniform(10, 100)
+            )
+            cars.append(car)
+
+        # Populate TransportModelEmissions with cars
         for i in range(5):
-            TransportModelEmissions.objects.create(
+            transport_model_emissions = TransportModelEmissions.objects.create(
                 user=user,
                 start_date=timezone.now(),
                 end_date=timezone.now() + timezone.timedelta(days=30),
-                type=random.choice(['passenger_car', 'light_duty_truck', 'Medium- and Heavy-duty Truck', 'Short Haul Air', 'Medium Haul Air', 'Long Haul Air', 'Intercity Rail', 'Commuter Rail', 'Freight Rail', 'Marine Shipping']),
-                mileage=random.uniform(100, 500)
             )
+            transport_model_emissions.cars.set(random.sample(cars, k=3))  # Associate 3 random cars with each transport emission
+            transport_model_emissions.save()
 
         # Populate RefrigerantModelEmissions
         for i in range(5):
@@ -101,16 +121,22 @@ class Command(BaseCommand):
                 user=user,
                 start_date=timezone.now(),
                 end_date=timezone.now() + timezone.timedelta(days=30),
-                refrigerant=random.choice(['R-407A', 'R-407B', 'R-407C','R-407D','R-407E', 'R-408A', 'R-409A', 'R-409B']),
-                charge_amount_kg = random.uniform(10, 150),
-                leak_rate =   random.uniform(10, 150),
-                annual_top_up_kg = random.uniform(10, 150),
-                disposal_recovery_kg = random.uniform(10, 150),
-                retirement_recovery_kg = random.uniform(10, 150),
-                )
+                refrigerant=random.choice(
+                    ['R-407A', 'R-407B', 'R-407C', 'R-407D', 'R-407E', 'R-408A', 'R-409A', 'R-409B']
+                ),
+                charge_amount_kg=random.uniform(10, 150),
+                leak_rate=random.uniform(10, 150),
+                annual_top_up_kg=random.uniform(10, 150),
+                disposal_recovery_kg=random.uniform(10, 150),
+                retirement_recovery_kg=random.uniform(10, 150),
+            )
 
         # Create a Result instance and associate models
-        result, created = Result.objects.get_or_create(user=user)
+        result, created = Result.objects.get_or_create(
+            user=user,
+            start_date=timezone.now(),
+            end_date=timezone.now() + timezone.timedelta(days=30)
+        )
         result.fuel.set(FuelModel.objects.filter(user=user))
         result.waste.set(WasteModel.objects.filter(user=user))
         result.electricity.set(ElectricityModel.objects.filter(user=user))

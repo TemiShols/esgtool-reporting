@@ -9,8 +9,8 @@
         <span id="resultFuel"></span>
     </div>
     <div class="result-group">
-        <label for="resultAf_kw">Your carbon emissions based on your {{emission.refrigerant}} input is:</label>
-        <span id="resultAf_kw">{{ emission.calculate_emissions() }}KgCO2</span>
+        <label for="result-emission">Your carbon emissions based on your HFC-{{emission.refrigerant}} input is:</label>
+        <span id="result-emission">{{ emissions_result }}KgCO2</span>
     </div>
 
     <div class="result-group">
@@ -32,8 +32,14 @@
         </div>
         {% endif %}
     </div>
-    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Back to Dashboard</button>
-    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Check </button>
+
+    <div class="d-flex justify-content-between">
+        <a class="btn btn-danger" href="{% url 'calculate_refrigerant_emissions' %}">Previous</a>
+        <div>
+            <a class="btn btn-success" href="{% url 'results' %}">View Results</a>
+
+        </div>
+    </div>
 </div>
 
 {% endblock %}

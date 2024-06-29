@@ -2,7 +2,7 @@
 {% load static %}
 {% block content %}
 
-<div class="result-container">
+<div class="result-container justify-content-center">
     <h2>Carbon Footprint Results</h2>
     <div class="result-group">
         <label for="resultFuel">Fuel:</label>
@@ -31,8 +31,14 @@
         </div>
         {% endif %}
     </div>
-    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Back to Dashboard</button>
-    <button class="btn btn-primary" onclick="{% url 'dashboard' %}">Check </button>
+    <div class="d-flex justify-content-between">
+        <a class="btn btn-danger" href="{% url 'calculate_fuel_emissions' %}">Previous</a>
+        <div>
+            <a class="btn btn-success" href="{% url 'calculate_electricity_emissions' %}">Next</a>
+
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}

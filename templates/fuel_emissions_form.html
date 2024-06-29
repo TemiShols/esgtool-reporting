@@ -4,18 +4,20 @@
 
 <div class="form-container">
     {% include 'messages.html' %}
-    <form action="{% url 'calculate_fuel_emissions' %}" method="post">
-        {% csrf_token %}
+    <form hx-post="{% url 'calculate_fuel_emissions' %}"
+          hx-target="#todo-table-body"
+          hx-swap="innerHTML"
+          hx-on::after-request="this.reset()">
         <div class="form-group">
-            <label for="start_date">Start Date</label>
-            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+            <label for="start_date" style="color: #000000;;">Start Date</label>
+            <input type="date" class="form-control" id="start_date" name="start_date" required>
         </div>
         <div class="form-group">
-            <label for="end_date">End Date</label>
-            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+            <label for="end_date" style="color: #000000;">End Date</label>
+            <input type="date" class="form-control" id="end_date" name="end_date" required>
         </div>
         <div class="form-group">
-            <label for="fuel">Type of Fuel:</label>
+            <label for="fuel" style="color: #000000;">Type of Fuel:</label>
             <select class="form-control" id="fuel" name='fuel'>
                 <option selected>Choose...</option>
                 <option value="Petrol">Petrol</option>
@@ -25,7 +27,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="coal">Type of Fuel:</label>
+            <label for="coal" style="color: #000000;">Type of Fuel:</label>
             <select class="form-control" id="coal" name='coal_type'>
                 <option selected>Choose...</option>
                 <option value="Anthracite">Anthracite</option>
@@ -36,11 +38,38 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="Af_v">Volume of fuel consumed(litres)</label>
-            <input type="text" class="form-control" id="Af_v" name="Af_v" required>
+            <label for="Af_v" style="color: #000000;">Volume of fuel consumed(litres)</label>
+            <input type="number" step="any" class="form-control" id="Af_v" name="Af_v" required>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <div class="d-flex justify-content-between">
+            <a class="btn btn-danger" href="{% url 'dashboard' %}">Dashboard</a>
+            <div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <a class="btn btn-danger" href="{% url 'calculate_electricity_emissions' %}">Next</a>
+
+            </div>
+        </div>
     </form>
 </div>
+
+
+<div class="container mt-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="color: #ffffff;">Start Date</th>
+                <th style="color: #ffffff;">End Date</th>
+                <th style="color: #ffffff;">Fuel Type</th>
+                <th style="color: #ffffff;">Volume(litres)</th>
+                <th style="color: #ffffff;">Total Emission</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="todo-table-body">
+          {% include 'fuelmodel-partial.html' with fuels=fuels %}
+        </tbody>
+    </table>
+</div>
+
 
 {% endblock %}

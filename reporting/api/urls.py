@@ -3,13 +3,16 @@ from rest_framework.routers import DefaultRouter
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-from .views import FuelModelViewSet, WasteModelViewSet, ElectricityModelViewSet, HeatingModelEmissionViewSet
+from .views import FuelModelViewSet, WasteModelViewSet, ElectricityModelViewSet, HeatingModelEmissionViewSet, ResultViewSet, TransportModelEmissionsViewSet, HomeHeatingModelEmissionViewSet
 
 router = DefaultRouter()
 router.register(r'fuel-emissions', FuelModelViewSet)
 router.register(r'waste-emissions', WasteModelViewSet)
 router.register(r'electricity-emissions', ElectricityModelViewSet)
 router.register(r'heating-emissions', HeatingModelEmissionViewSet)
+router.register(r'heating-emissions', HomeHeatingModelEmissionViewSet)
+router.register(r'heating-emissions', TransportModelEmissionsViewSet)
+router.register(r'heating-emissions', ResultViewSet)
 
 schema_view = get_schema_view(
     openapi.Info(
