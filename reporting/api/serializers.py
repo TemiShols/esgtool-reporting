@@ -60,7 +60,7 @@ class CarSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Car
-        fields = ['name', 'start_date', 'mend_date', 'registration_number', 'type', 'mileage', 'fuel_type',
+        fields = ['name', 'user', 'start_date', 'end_date', 'registration_number', 'type', 'mileage', 'fuel_type',
                   'fuel_quantity', 'co2_emission']
 
     def get_co2_emission(self, obj):
